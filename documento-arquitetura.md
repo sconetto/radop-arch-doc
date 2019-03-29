@@ -6,6 +6,7 @@
 |---|---|---|---|
 |24/03/2019|0.0.0|Criação do documento e estrutura inicial|João Pedro Sconetto|
 |25/03/2019|0.0.1|Adição da versão inicial do documento para revisão da equipe de software|João Pedro Sconetto|
+|29/03/2019|0.1.0|Refinamento da primeira versão para apreciação|João Pedro Sconetto|
 
 ---
 
@@ -13,7 +14,7 @@
 
 ### 1.1: Finalidade
 
-Este documento tem como finalidade apresentar uma visão geral arquitetural do sistemas que compõe a rede de serviços de software para o __*RaDop - Radar de Efeito Doppler*__, que será usada como guia no desenvolvimento do projeto e permitirá um entendimento maior de todos os componentes integrantes destes sistemas, como um todo, além de descrever comportamentos, padrões, protocolos de comunicação e demais informações relacionadas ou correlacionadas. Com o detalhamento da arquitetura, espera-se, também, deixar explicíta as decisões arquiteturais realizadas pela equipe.
+Esta seção tem como finalidade apresentar uma visão geral arquitetural do sistemas que compõe a rede de serviços de software para o __*RaDop - Radar de Efeito Doppler*__, que será usada como guia no desenvolvimento do projeto e permitirá um entendimento maior de todos os componentes integrantes destes sistemas, como um todo, além de descrever comportamentos, padrões, protocolos de comunicação e demais informações relacionadas ou correlacionadas. Com o detalhamento da arquitetura, espera-se, também, deixar explicíta as decisões arquiteturais realizadas pela equipe.
 
 ### 1.2: Escopo
 
@@ -30,7 +31,7 @@ O documento presente abrange três camadas de produtos de software proposto pela
 
 ### 2.1: Servidor de Microserviços RaDop - SMR
 
-A solução de software proposta para o RaDop será composta de um servidor de serviços/microserviços para realizar tarefas específicas, esses serviços serão especialistas em tarefas que serão suportadas pelo RaDop, dessa forma haverá um sistema central que controlará os demais serviços. A comunicação se dará via API e requisições HTML com transporte, se necessário, de arquivos JSON com os dados para execução completa e correta dos serviços. Os serviços deverão ser construídos em [python](https://www.python.org/) e/ou em [Go](https://golang.org/), podendo ser atribuído a estes uso de _frameworks_/ferramentas/tecnologias a serem definidas no andamento do projeto e posteriormente descritos neste documento (numa nova iteração). Detalhes da arquitetura dos mesmos também serão adicionados a posteriori.
+A solução de software proposta para o RaDop será composta de um servidor de serviços/microserviços para realizar tarefas específicas, esses serviços serão especialistas em tarefas que serão suportadas pelo RaDop, dessa forma haverá um sistema central que controlará os demais serviços. A comunicação se dará via API e requisições HTML com transporte, se necessário, de arquivos JSON com os dados para execução completa e correta dos serviços. Vale ressaltar que, para sistemas que comunicam diretamente com componentes eletrônicos do equipamento, o formato de comunicação pode ser diferente, mas mantendo-se em protocolos de comunicação em rede, o que pode alterar o formato de transporte de dados de JSON para um _encoding_ mais simples. Os serviços deverão ser construídos em [python](https://www.python.org/) e/ou em [Go](https://golang.org/), podendo ser atribuído a estes uso de _frameworks_/ferramentas/tecnologias a serem definidas no andamento do projeto e posteriormente descritos nesta seção. Detalhes da arquitetura dos mesmos também serão adicionados a posteriori.
 
 ### 2.2: WebApp Dashboard RaDop
 
@@ -54,17 +55,15 @@ Agrega toda a parte visual que estará visível para os usuários. Inclui os có
 
 ### 2.3: Aplicativo RaDop
 
-O aplicativo RaDop será uma aplicação mobile desenvolvida a partir do _framework_ [React](https://reactjs.org/), o qual é escrito na linguagem de programação [JavaScript](https://www.javascript.com/), O _framework_ não tem nenhum padrão arquitetural por definição, há necessidade de uma estrutura devido ao uso do JavaScript como base mas a organização dessa estrutura fica a critério da equipe de desenvolvimento. Dada particularidade, o modelo arquitetural que têm sido bastante utilizado pela comunidade é o de arquitetura baseada em módulos, onde cada _view_ do usuário é tida como um módulo e cada módulo têm suas dependências descritas dentro da estrutura daquela _view_. Desta forma cada módulo é independente, o que o torna mais fácil de ser programado, mais manutenível e mais robusto.
+O aplicativo RaDop será uma aplicação mobile desenvolvida a partir do _framework_ React-Native (https://facebook.github.io/react-native/), construído em cima da linguagem de programação JavaScript (https://www.javascript.com/). O React-Native é o que chamamos de _data-driven_, ou seja, ele não implementa padrões arquiteturais por padrão, apenas utiliza os dados que recebe (basicamente as funções recebem os dados e devolvem resultados). No caso do React os dados são o estado da aplicação, as controllers são as funções são os componentes e os resultados são a UI. Dessa forma, a aplicação é modularizada em __N__ componentes (podendo ser _stateless_ ou _stateful_), o que torna a aplicação escalável, robusta e de fácil manutenção.
 
-Dentro dos componentes do módulo há alguns módulos que se dividem em _View_ e _Controller_. Esta divisão facilita na manutenção, pois geralmente o desenvolvimento se dá na _View_ do componente, e nesta ideia se tem separada aquela parte da lógica do componente. Sendo estes componentes descritos da seguinte forma.
+#### 2.3.1: _Stateless_
 
-#### 2.3.1: _View_
+Neste formato de componente apenas recebe dados de outros componentes para a sua execução, isso infere que cada uma de suas execuções é independente, portanto não há conexão entre uma transação e outra. Com isso o componente não retém dados para si, ou estado de sessões, propriedades, execuções ou outras informações quaisquer em sua estrutura.
 
-_View_ é um componente que possui somente a exibição do mesmo componente, todos os seus valores chegam por _props_ (propriedades), obrigatoriamente devem ser funções.
+#### 2.3.2: _Statefull_
 
-#### 2.3.2: _Controller_
-
-O estado da aplicação está neste componente, desde o estado que vem do Redux, ao estado do componente (_state_). Ele renderiza somente a sua _View_ e passa todas as _props_ (propriedades) para ela.
+Neste formato o componente controla o seu próprio estado, ou seja, ele armazena informações de sua própria execução e subsequentemente, como o próprio nome diz, do seu estado. Com isso, também, o componente fica responsável pelo envio dessas informações para outros componentes.
 
 ## 3: Requisitos e Restrições Arquiteturais
 
@@ -108,17 +107,18 @@ A visão lógica dos serviços do RaDop serão melhor apresentados durante a exe
 
 ![Diagrama de Pacotes React](./DiagramaPacotes-react.png)
 
-## N: Tamanho e Desempenho
+## 5: Tamanho e Desempenho
 
 Devido a necessidade de decisões em tempo real os sistemas críticos deverão ser desenvolvidos de modo a serem o mais perfomáticos possível, num ponto de vista de tempo de execução, tempo de recebimento de dado e tempo de envio de dados (excluíndo de fatores externos), e que sejam capaz de se recuperar de falhas, sejam de redes, de execução e etc. Os demais sistemas que não forem críticos deverão seguir os melhores padrões da comunidade produtora de software, afim de manter o seu tamanho e desempenho dentro de parâmetros aceitáveis pelos _stakeholders_ do projeto.
 
-## N: Qualidade
+## 6: Qualidade
 
 A qualidade das três camadas de produto software para o Radar de Efeito Doppler - RaDop se darão pelos padrões definidos na comunidade, sendo avaliado legibilidade de código dado pelo padrão de estilo de escrita, como o [PEP 8](https://www.python.org/dev/peps/pep-0008/) definido pelo python, cobertura de código via testes unitários e presença de testes unitários para funções dos módulos dos sistemas/serviços. As interfaces visuais serão testadas para serem usáveis, interativas e de fácil aprendizado, sendo essas validadas com os _stakeholders_ do projeto e com os integrantes da equipe.
 
 ## Referências
 
-https://djangobook.com/mdj2-django-structure/. Acesso em 25 de março de 2019.
-https://github.com/DroidFoundry/DroidMetronome/wiki/Documento-de-Arquitetura-de-Software-(DAS). Acesso em 25 de março de 2019.
-https://docs.djangoproject.com/en/2.1/. Acesso em 25 de março de 2019.
-https://medium.com/@henriquejensen/arquitetura-de-projeto-react-e-redux-a1c24c1319d2. Acesso em 25 em março de 2019.
+[1] https://djangobook.com/mdj2-django-structure/. Acesso em 25 de março de 2019.
+[2] https://github.com/DroidFoundry/DroidMetronome/wiki/Documento-de-Arquitetura-de-Software-(DAS). Acesso em 25 de março de 2019.
+[3] https://docs.djangoproject.com/en/2.1/. Acesso em 25 de março de 2019.
+[4] https://medium.com/@henriquejensen/arquitetura-de-projeto-react-e-redux-a1c24c1319d2. Acesso em 25 em março de 2019.
+[5] https://pt.wikipedia.org/wiki/Protocolo_sem_estado. Acesso em 27 de março de 2019.
